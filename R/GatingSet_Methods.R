@@ -96,6 +96,11 @@ gs_get_cytoframe <- function(x, ...){
   cs_get_cytoframe(gs_cyto_data(x), ...)
 }
 
+##' @export
+#setMethod("SingleCellExperiment",c("GatingSet"),function(x, ...){
+#  gs_to_sce(x, ...)
+#})
+
 #' @export
 setMethod("GatingSet", c("GatingHierarchy", "character"), function(x, y, path="."
 																	, ...){

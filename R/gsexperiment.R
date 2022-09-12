@@ -58,13 +58,7 @@ gsexperiment <- function(gs, pop = "root"){
   #cbind samples
   se <- do.call(cbind, selist)
   as(se, "gsexperiment")
-
 }
-
-setMethod("GatingSet",c("SingleCellExperiment"),function(x, ...){
-
-  sce_to_gs(x, ...)
-})
 
 #' convert SingleCellExperiment to a GatingSet
 #'
@@ -117,8 +111,11 @@ sce_to_gs <- function(sce
 
 }
 
-gs_get_cell_pop_labels <- function(gs){
+setMethod("GatingSet",c("SingleCellExperiment"),function(x, ...){
+  sce_to_gs(x, ...)
+})
 
+gs_get_cell_pop_labels <- function(gs){
 }
 
 #' @importFrom dplyr select
