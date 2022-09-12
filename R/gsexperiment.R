@@ -28,8 +28,7 @@ gsexperiment <- function(gs, pop = "root"){
                     , row.names = pd$name #rownames(pd)
                     )
     #colData
-    
-    #label each cell with leaf nodes
+        #label each cell with leaf nodes
     ncell <- nrow(cf)
     idx.ancestor <- gh_pop_get_indices(gh, pop)
     idx <- rep(F, ncell)
@@ -49,7 +48,11 @@ gsexperiment <- function(gs, pop = "root"){
     #convert to factor to save space
     pop.col <- factor(pop.col, levels = leaf)
     cd <- DataFrame(pop = pop.col, sample = factor(rep(sn, ncell), levels = sns))
-    SingleCellExperiment(assays = SimpleList(intensity = ca), rowData = rd, colData = cd)
+
+    ca.sList <- SimpleList(assay = ca)
+    names(ca.sList) <- assayType
+
+    SingleCellExperiment(assays = list.ca, rowData = rd, colData = cd)
   })
   #cbind samples
   se <- do.call(cbind, selist)
@@ -114,7 +117,6 @@ sce_to_gs <- function(sce
 } 
 
 gs_get_cell_pop_labels <- function(gs){
-  
 }
 
 #' @importFrom dplyr select
