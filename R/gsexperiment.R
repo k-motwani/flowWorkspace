@@ -5,8 +5,8 @@ setClass("gsexperiment", contains = c("SingleCellExperiment"))
 #' @importFrom S4Vectors DataFrame SimpleList
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
-gsexperiment <- function(gs, pop = "root"){
-  leaf <- gs_get_leaf_nodes(gs, pop, path = "auto", assayType = "intensity", showHidden = FALSE)
+gsexperiment <- function(gs, pop = "root", assay.type = "intensity"){
+  leaf <- gs_get_leaf_nodes(gs, pop, path = "auto", assayType = assay.type, showHidden = FALSE)
   sns <- sampleNames(gs)
   selist <-  lapply(sns, function(sn){
     gh <- gs[[sn]]
@@ -50,10 +50,10 @@ gsexperiment <- function(gs, pop = "root"){
     pop.col <- factor(pop.col, levels = leaf)
     cd <- DataFrame(pop = pop.col, sample = factor(rep(sn, ncell), levels = sns))
 
-    ca.sList <- SimpleList(assay = ca)
-    names(ca.sList) <- assayType
+    ca.SimpleList <- SimpleList(assay = ca)
+    names(ca.SimpleList) <- assay.type
 
-    SingleCellExperiment(assays = list.ca, rowData = rd, colData = cd)
+    SingleCellExperiment(assays = ca.SimpleList, rowData = rd, colData = cd)
   })
   #cbind samples
   se <- do.call(cbind, selist)
@@ -114,6 +114,10 @@ sce_to_gs <- function(sce
 setMethod("GatingSet",c("SingleCellExperiment"),function(x, ...){
   sce_to_gs(x, ...)
 })
+
+# setMethod("SingleCellExperiment",c("GatingSet"),function(x, ...){
+#   gs_to_sce(x, ...)
+# })
 
 gs_get_cell_pop_labels <- function(gs){
 }
