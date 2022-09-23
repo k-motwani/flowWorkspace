@@ -1,11 +1,11 @@
-#' @importClassesFrom SingleCellExperiment SingleCellExperiment
+#' @importClassesFrom tidySingleCellExperiment SingleCellExperiment
 #' @export
-setClass("gsexperiment", contains = c("SingleCellExperiment"))
+setClass("gsExperiment", contains = c("tidySingleCellExperiment"))
 
 #' @importFrom S4Vectors DataFrame SimpleList
-#' @importFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom tidySingleCellExperiment SingleCellExperiment
 #' @export
-gsexperiment <- function(gs, pop = "root", assay.type = "intensity"){
+gsExperiment <- function(gs, pop = "root", assay.type = "intensity"){
   leaf <- gs_get_leaf_nodes(gs, pop, path = "auto", assayType = assay.type, showHidden = FALSE)
   sns <- sampleNames(gs)
   selist <-  lapply(sns, function(sn){
@@ -53,11 +53,11 @@ gsexperiment <- function(gs, pop = "root", assay.type = "intensity"){
     ca.SimpleList <- SimpleList(assay = ca)
     names(ca.SimpleList) <- assay.type
 
-    SingleCellExperiment(assays = ca.SimpleList, rowData = rd, colData = cd)
+    tidySingleCellExperiment(assays = ca.SimpleList, rowData = rd, colData = cd)
   })
   #cbind samples
   se <- do.call(cbind, selist)
-  as(se, "gsexperiment")
+  as(se, "gsExperiment")
 }
 
 #' convert SingleCellExperiment to a GatingSet
@@ -127,7 +127,7 @@ gs_get_cell_pop_labels <- function(gs){
 #' @importFrom tibble column_to_rownames
 #' @importFrom TreeSummarizedExperiment TreeSummarizedExperiment
 #' @export
-gstreeexperiment <- function(gs, ancestor = "root", path = "auto"){
+gsTreeExperiment <- function(gs, ancestor = "root", path = "auto"){
   path <- match.arg(path, c("auto", "full"))
   this_phylo <- gs_get_phylo(gs, ancestor, tip.label = path)
   leaves <- gs_get_leaf_nodes(gs, ancestor, path = path)

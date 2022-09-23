@@ -1,11 +1,11 @@
-#' @importClassesFrom SummarizedExperiment SummarizedExperiment
+#' @importClassesFrom tidySummarizedExperiment SummarizedExperiment
 #' @export
-setClass("cytoexperiment", contains = c("SummarizedExperiment"))
+setClass("cytoExperiment", contains = c("tidySummarizedExperiment"))
          
 #' @importFrom S4Vectors DataFrame SimpleList
-#' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom tidySummarizedExperiment SummarizedExperiment
 #' @export
-cytoexperiment <- function(cf){
+cytoExperiment <- function(cf){
   ca <- CytoArray(cf)
   pd <- pData(parameters(cf))
   
@@ -21,8 +21,8 @@ cytoexperiment <- function(cf){
                   , row.names = pd$name #rownames(pd)
                   )
   
-  cse <- SummarizedExperiment(assays = SimpleList(intensity = ca)
+  cse <- tidySummarizedExperiment(assays = SimpleList(intensity = ca)
                               , rowData = rd)
-  as(cse, "cytoexperiment")
+  as(cse, "cytoExperiment")
   
 }
