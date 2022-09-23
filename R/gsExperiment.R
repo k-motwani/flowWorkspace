@@ -1,9 +1,9 @@
-#' @importClassesFrom tidySingleCellExperiment SingleCellExperiment
+#' @importClassesFrom SingleCellExperiment SingleCellExperiment
 #' @export
 setClass("gsExperiment", contains = c("tidySingleCellExperiment"))
 
 #' @importFrom S4Vectors DataFrame SimpleList
-#' @importFrom tidySingleCellExperiment SingleCellExperiment
+#' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
 gsExperiment <- function(gs, pop = "root", assay.type = "intensity"){
   leaf <- gs_get_leaf_nodes(gs, pop, path = "auto", assayType = assay.type, showHidden = FALSE)
@@ -16,10 +16,6 @@ gsExperiment <- function(gs, pop = "root", assay.type = "intensity"){
     #rowData
     pd <- pData(parameters(cf))
 
-    ## somehow can't coerse df to DF
-    # pd$name <- as.character(pd$name)
-    # pd$desc <- as.character(pd$desc)
-    # as(pd, "DataFrame")
     rd <- DataFrame(#name = pd$name
                      desc = pd$desc
                     # , range = pd$range
@@ -53,7 +49,8 @@ gsExperiment <- function(gs, pop = "root", assay.type = "intensity"){
     ca.SimpleList <- SimpleList(assay = ca)
     names(ca.SimpleList) <- assay.type
 
-    tidySingleCellExperiment(assays = ca.SimpleList, rowData = rd, colData = cd)
+    gse <- SingleCellExperiment(assays = ca.SimpleList, rowData = rd, colData = cd)
+    as(gse, "tidySingleCellExperiment")
   })
   #cbind samples
   se <- do.call(cbind, selist)
