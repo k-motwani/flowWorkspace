@@ -11,6 +11,7 @@ on:
     branches: [ release, master ]
   pull_request:
     branches: [ release, master ]
+  workflow_dispatch:
 
 jobs:
   build:
