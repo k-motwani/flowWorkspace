@@ -11,6 +11,7 @@ on:
     branches: [ release, master ]
   pull_request:
     branches: [ release, master ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,8 +23,8 @@ jobs:
         r: ['release', 'devel']
         config:
 #           - {os: windows-latest, suffix: 'zip'} 
-          - {os: macOS-latest, suffix: 'tgz'}
-#           - {os: ubuntu-16.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+#          - {os: macOS-latest, suffix: 'tgz'}
+           - {os: ubuntu-20.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
         isMaster:
           - ${{ contains(github.ref, 'master') }}
         exclude:
@@ -79,7 +80,7 @@ jobs:
           while read -r cmd
           do
             eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "16.04"))')
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
           sudo apt-get install -y libcurl4-openssl-dev
 
       - name: Install dependencies
@@ -87,7 +88,7 @@ jobs:
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran(c("rcmdcheck", "devtools"))
 #          remotes::install_github("RGLab/cytoinstaller")
- #         cytoinstaller::cyto_install_deps(dependencies = TRUE)
+#          cytoinstaller::cyto_install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
 #       - name: check rate limit

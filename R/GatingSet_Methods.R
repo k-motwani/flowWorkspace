@@ -5,7 +5,7 @@ NULL
 NULL
 
 #' subset gs by population node
-#' 
+#'
 #' Basically it returns a new GatingSet with only the substree of the given population node
 #' @param gs GatingSet
 #' @param pop the population node that will become the new root node
@@ -22,7 +22,7 @@ gs_pop_get_gs <- function(gs, pop){
   if(pop != "root")
   {
     nodes.first.level <- gs_pop_get_children(gs1, "root")
-  
+
     nodes.tomv <- gs_pop_get_children(gs1, pop)
     for(node in nodes.tomv)
       for(i in seq_len(length(gs1)))
@@ -32,7 +32,7 @@ gs_pop_get_gs <- function(gs, pop){
     #purge the rest ancestors and siblings
     for(node in nodes.first.level)
       gs_pop_remove(gs1, node)
-    
+
     gs_cyto_data(gs1) <- cs
   }
   recompute(gs1)#update cell indicies even stats remain unchanged
@@ -57,7 +57,7 @@ gs_is_persistent <- function(x){
 #' @rdname gs_is_persistent
 gs_is_h5 <- function(x){
 	.Deprecated("gs_is_persistent")
-	
+
 }
 
 #' @export
@@ -86,7 +86,7 @@ setMethod("Subset",
           })
 
 #' @export
-#' @rdname cs_get_uri  
+#' @rdname cs_get_uri
 gs_get_uri <- function(x){
   cs_get_uri(x)
 }
@@ -95,6 +95,11 @@ gs_get_uri <- function(x){
 gs_get_cytoframe <- function(x, ...){
   cs_get_cytoframe(gs_cyto_data(x), ...)
 }
+
+##' @export
+#setMethod("SingleCellExperiment",c("GatingSet"),function(x, ...){
+#  gs_to_sce(x, ...)
+#})
 
 #' @export
 setMethod("GatingSet", c("GatingHierarchy", "character"), function(x, y, path="."
@@ -129,7 +134,7 @@ setMethod("GatingSet", c("GatingHierarchy", "character"), function(x, y, path=".
 
 
 			files<-file.path(dataPaths,samples)
-			gh_apply_to_new_fcs(x, files, ...)	
+			gh_apply_to_new_fcs(x, files, ...)
 		})
 
 #' Construct a \code{GatingSet} using a template
@@ -137,7 +142,7 @@ setMethod("GatingSet", c("GatingHierarchy", "character"), function(x, y, path=".
 #' This uses a \code{\link{GatingHierarchy}} as a template to apply to other loaded samples in the form of a \code{\link{cytoset}},
 #' resulting in a \code{\link{GatingSet}}. The transformations and gates from the template are applied to all samples. The compensation
 #' applied to each of the samples can be controlled via the \code{compensation_source} argument.
-#'  
+#'
 #' @name gh_apply_to_cs
 #' @aliases GatingSet,GatingHierarchy,character-method
 #' @param x GatingHierarchy
@@ -150,16 +155,16 @@ setMethod("GatingSet", c("GatingHierarchy", "character"), function(x, y, path=".
 #'   \item "template" -- all cytoframes will be compensatied with the spillover matrix of the template GatingHierarchy
 #'   \item "none" -- no compensation will be applied
 #' }
-#' @return a \code{GatingSet} 
+#' @return a \code{GatingSet}
 #' @export
 gh_apply_to_cs <- function(x, cs
 									              , swap_cols = FALSE #for diva parsing
 									              , compensation_source = "sample"
-									              , ...){	
-      
+									              , ...){
+
 			compensation_source <- match.arg(compensation_source, c("sample", "template", "none"))
 			message("generating new GatingSet from the gating template...")
-			
+
 			cols.old <- colnames(cs)
 			cols <- swap_data_cols(cols.old, swap_cols)#validity check
 			if(!all(cols==cols.old))
@@ -168,9 +173,9 @@ gh_apply_to_cs <- function(x, cs
 				for(c1 in names(swap_cols))
 				{
 					c2 <- swap_cols[[c1]]
-					cs_swap_colnames(cs, c1, c2)					
+					cs_swap_colnames(cs, c1, c2)
 				}
-				
+
 			}
 			execute_in_c <- length(x@transformation) == 0
 			gs <- new("GatingSet", pointer = .cpp_NewGatingSet(x@pointer,sampleNames(x), cs@pointer, execute_in_c, compensation_source))
@@ -198,21 +203,21 @@ gh_apply_to_cs <- function(x, cs
 			  #post transform the data and copy over the R trans to new gs
 			  #because c++ code only compensate but doesn't transform data
 			  gs <- transform(gs, x@transformation[[1]])
-			  
+
 			  recompute(gs)
-			}	
-			
+			}
+
 			return(gs)
 }
 
 #' Construct a \code{GatingSet} using a template and FCS files
-#' 
+#'
 #' This uses a \code{\link{GatingHierarchy}} as a template to apply to other loaded samples in the form of a list of FCS files,
 #' resulting in a \code{\link{GatingSet}}. The transformations and gates from the template are applied to all samples.
-#' 
+#'
 #' This method is still included to support legacy scripts but will deprecated for the more modular workflow of loading a \code{\link{cytoset}}
 #' via \code{\link{load_cytoset_from_fcs}} followed by \code{\link{gh_apply_to_cs}}.
-#' 
+#'
 #' @inheritParams gh_apply_to_cs
 #' @param backend the backend storage mode to use for \code{\link{load_cytoset_from_fcs}}
 #' @param ... other arguments passed to \code{\link{load_cytoset_from_fcs}}
@@ -229,12 +234,12 @@ gh_apply_to_new_fcs <- function(x, files
 
 #' Swap the colnames
 #' Perform some validity checks before returning the updated colnames
-#'  
+#'
 #' @param cols the original colname vector
 #' @param swap_cols a named list specifying the pairs to be swapped
 #' @return the new colname vector that has some colnames swapped
-#' @export 
-#' @examples 
+#' @export
+#' @examples
 #' library(flowCore)
 #' data(GvHD)
 #' fr <- GvHD[[1]]
@@ -244,27 +249,27 @@ gh_apply_to_new_fcs <- function(x, files
 swap_data_cols <- function(cols, swap_cols)
 {
 	if(!is.null(swap_cols))
-		if(!isFALSE(swap_cols) && length(swap_cols) > 0) 
+		if(!isFALSE(swap_cols) && length(swap_cols) > 0)
 		{
 			left <- names(swap_cols)
 			right <- as.vector(unlist(swap_cols))
-			
+
 			update <- FALSE
 			for(left in names(swap_cols))
 			{
 				right <- swap_cols[[left]]
-				
+
 				lidx <- match(left, cols)
 				ridx <- match(right, cols)
-				
+
 				if(!is.na(lidx) && !is.na(ridx))
 				{
-					if(length(lidx) > 1) 
+					if(length(lidx) > 1)
 						stop("Multiple cols matched to ", left)
 					if(length(ridx) > 1)
 						stop("Multiple cols matched to ", right)
-					message("swap cols: ", left, ":", right)  
-					
+					message("swap cols: ", left, ":", right)
+
 					cols[c(lidx, ridx)]  <- c(right, left)
 				}
 			}
@@ -276,7 +281,7 @@ swap_data_cols <- function(cols, swap_cols)
 fix_y_axis <- function(gs, x, y){
 	chnls <- colnames(gs_pop_get_data(gs))
 	y.candidates <- chnls[-match(x,chnls)]
-	
+
 	if(y%in%y.candidates)
 		yParam <- y
 	else{
@@ -293,17 +298,17 @@ fix_y_axis <- function(gs, x, y){
 
 #' @rdname gs_clone
 #' @param h5_dir h5 dir for the new gs
-#' @export 
+#' @export
 gs_clone <- function(x, h5_dir = tempdir()){
   new("GatingSet", pointer = .cpp_CloneGatingSet(x@pointer, h5_dir, is_copy_data = TRUE))
-  
+
 }
 
 #' @rdname gs_clone
-#' @export 
+#' @export
 gs_copy_tree_only <- function(x){
   new("GatingSet", pointer = .cpp_CloneGatingSet(x@pointer, h5_dir = "", is_copy_data = FALSE))
-  
+
 }
 #' @name recompute
 #' @export
@@ -315,7 +320,7 @@ recompute <- function(x, y = "root", alwaysLoadData = FALSE, verbose = FALSE, le
 #' and store the result as cell count.
 #'
 #' It is usually used immediately after \link{add} or \link{gs_pop_set_gate} calls.
-#' 
+#'
 #' @name recompute
 #' @param x \code{GatingSet or GatingSetList}
 #' @param y \code{character} node name or node path. Default "root". Optional.
@@ -334,7 +339,7 @@ recompute.GatingSet <- function(x,y = "root", alwaysLoadData = FALSE, verbose = 
 
 #' apply \code{FUN} to each sample (i.e. \code{GatingHierarchy} or \code{cytoframe})
 #' in a \code{GatingSet} or \code{cytoset}
-#' 
+#'
 #' sample names are used for names of the returned list
 #'
 #' @name lapply-methods
@@ -358,13 +363,13 @@ setMethod("lapply","GatingSet",function(X,FUN,...){
 #' Get/update sample names in a GatingSet
 #'
 #' Return  a sample names contained in a GatingSet
-#' 
+#'
 #' @name sampleNames
 #' @aliases sampleNames,GatingSet-method
 #' sampleNames,cytoset-method sampleNames,cytoset,
 #' @usage sampleNames(object)
 #' @param object a \code{GatingSet}
-#' 
+#'
 #' @details
 #' The sample names comes from pdata of fs.
 #'
@@ -424,9 +429,9 @@ gs_pop_get_data <- function(obj, y = "root", inverse.transform = FALSE, ...){
 		if(missing(y))
 			y <- NULL
 		else if(!is.character(y))
-			stop(" 'numeric` indexing is no longer safe . Please use node name instead!")        
+			stop(" 'numeric` indexing is no longer safe . Please use node name instead!")
 		res <- lapply(obj,function(gs){
-					
+
 					if(is.null(y))
 						ncfs <- gs_pop_get_data(gs,inverse.transform=inverse.transform, ...)
 					else
@@ -434,15 +439,15 @@ gs_pop_get_data <- function(obj, y = "root", inverse.transform = FALSE, ...){
 					ncfs
 				}, level =1)
 		ncdfFlowList(res, samples_orig)
-		
+
 	}else
 	{
 		cs <- new("cytoset", pointer = get_cytoset_from_node(obj@pointer, y))
 		if(inverse.transform)
 		  cs <- transform(gs_cyto_data(gs_clone(cs)), gs_get_transformlists(obj, inverse = TRUE))
-		
+
 		cs[,...]
-		
+
 	  }
 
 }
@@ -467,12 +472,12 @@ setGeneric("flowData<-", function(x,value) standardGeneric("flowData<-"))
 setMethod("flowData",signature("GatingSet"),function(x){
   .Deprecated("gs_cyto_data")
   gs_cyto_data(obj)
-  
+
 })
 #' Fetch or replace the flowData object associated with a GatingSet .
 #'
 #' Accessor method that gets or replaces the \code{\link{cytoset}}/\code{\link[flowCore]{flowSet}}/\code{\link[ncdfFlow:ncdfFlowSet-class]{ncdfFlowSet}} object in a GatingSet or GatingHierarchy
-#' 
+#'
 #' @name gs_cyto_data
 #' @aliases flowData flowData<- gs_cyto_data<- flowData,GatingSet-method flowData<-,GatingSet-method
 #' gs_cyto_data,GatingSet-method gs_cyto_data<-,GatingSet-method
@@ -491,17 +496,17 @@ setGeneric("gs_cyto_data", function(x, ...) standardGeneric("gs_cyto_data"))
 #' @param inverse.transform logical flag indicating whether to inverse transform the data
 #' @export
 setMethod("gs_cyto_data",signature("GatingSet"),function(x, inverse.transform=FALSE){
-	
+
 	if(inverse.transform)
 	{
 	  data <- gs_cyto_data(gs_clone(x))#make a copy before transform to keep the original data intact
-	  
+
     transform(data, gs_get_transformlists(x, inverse = inverse.transform))
-	  
+
 	}else
 	  data <- new("cytoset", pointer = get_cytoset(x@pointer))
-	
-	
+
+
 	data
 })
 
@@ -512,7 +517,7 @@ gs_get_transformlists<- function(gs, inverse = FALSE){
       stop("No transformation is found from the GatingSet!")
     transformList(names(trans), trans)
   })
-  
+
 }
 #' @export
 setGeneric("gs_cyto_data<-", function(x,value) standardGeneric("gs_cyto_data<-"))
@@ -642,7 +647,7 @@ gs_pop_set_name <- function(x,y,value){
   lapply(x,function(gh){
 			  gh_pop_set_name(gh,y,value)
   })
-  
+
 }
 #' @rdname gs_pop_set_visibility
 #' @export
@@ -650,7 +655,7 @@ gs_pop_set_visibility <- function(x,y,value){
   lapply(x,function(gh){
     gh_pop_set_visibility(gh,y,value)
   })
-  
+
 }
 
 #' @templateVar old getLoglevel
@@ -693,7 +698,7 @@ set_log_level <- function(level = "none"){
 }
 
 #' Bracket operators on \code{GatingSet} and \code{GatingSetList} objects
-#' 
+#'
 #' @description \code{[[} extracts a \code{GatingHierarchy} object from a \code{GatingSet}.
 #'
 #' @name brackets
@@ -719,21 +724,21 @@ setMethod("[[",c(x="GatingSet",i="logical"),function(x,i,j,...){
     })
 setMethod("[[",c(x="GatingSet",i="character"),function(x,i,j,...){
       as(x[i], "GatingHierarchy")
-      
+
     })
 
 #' @export
 setReplaceMethod("[[",
 		signature=signature(x="GatingSet",value="GatingHierarchy"),
 		definition=function(x, i, j = "missing", ..., value)
-			
+
 		{
-		  #dummy replacement method that only does some validity checking without doing the actual replacement 
+		  #dummy replacement method that only does some validity checking without doing the actual replacement
 		  #since whatever changes (at least for the existing setter for gh) made directly to gh should already be synced to gs
 		  #gh is intended to be used as reference-type of object for any modification operations
 			## stopifnot(identical(x@pointer, value@pointer))
 		  stopifnot(identical(sampleNames(x[[i]]), sampleNames(value)))
-		  #return gs as it is 
+		  #return gs as it is
 		  x
 		})
 #' Methods to get the length of a GatingSet
@@ -764,7 +769,7 @@ gs_pop_get_count_fast(x, statistic, xml, subpopulations, format, path, ...)
 #'   or the population proportions or the total number of events of a node (population) in a GatingHierarchy
 #'
 #' gs_pop_get_count_fast is more useful than getPop. Returns a table of population statistics for all populations in a \code{GatingHierarchy}/\code{GatingSet}. Includes the xml counts, openCyto counts and frequencies.
-#' 
+#'
 #' @name gs_pop_get_count_fast
 #' @aliases getPopStats,GatingSet-method
 #' @param x A \code{GatingHierarchy} or \code{GatingSet}
@@ -860,11 +865,11 @@ gs_pop_get_count_fast <- function(x, statistic = c("count", "freq"), xml = FALSE
 }
 
 #' calculate the coefficient of variation
-#' 
+#'
 #' This builds matrix with all node labels for all GH's
 #' so expect many NAs if the GH's don't have matching trees
-#' 
-#' @noRd 
+#'
+#' @noRd
 .computeCV <- function(x, ...){
   #columns are populations
   #rows are samples
@@ -893,7 +898,7 @@ gs_pop_get_count_fast <- function(x, statistic = c("count", "freq"), xml = FALSE
 #' Plot the coefficient of variation between xml and openCyto population statistics for each population in a gating hierarchy.
 #'
 #' This function plots the coefficient of variation calculated between the xml population statistics and the openCyto population statistics for each population in a gating hierarchy extracted from a xml Workspace.
-#' 
+#'
 #' @name gs_plot_pop_count_cv
 #' @param x A \code{GatingHierarchy} from or a \code{GatingSet}.
 #' @param scales \code{list} see \link{barchart}
@@ -980,7 +985,7 @@ gs_keyword_set <- function(gs, keys, values){
 #' The transformation functions are saved in the GatingSet and can be retrieved by \link{gh_get_transformations}.
 #' Currently only flowJo-type biexponential transformation(either returned by \link{gh_get_transformations} or constructed by \link{flowJoTrans})
 #' is supported.
-#' 
+#'
 #' @name transform
 #' @aliases transform,GatingSetList-method transform,GatingSet-method
 #' @param _data \code{GatingSet} or \code{GatingSetList}
@@ -1010,7 +1015,7 @@ setMethod("transform",
     signature = signature(`_data` = "GatingSet"),
     definition = function(`_data`, translist, ...)
     {
-      
+
       gs <- `_data`
       # browser()
       if(missing(translist))
@@ -1019,36 +1024,36 @@ setMethod("transform",
       {
         translist <- sapply(sampleNames(gs), function(obj)translist, simplify = FALSE)
       }
-      
+
       if(is(translist, "list"))
       {
         tList <- lapply(translist, function(trans){
           if(!is(trans, "transformerList"))
             stop("All the elements of 'translist' must be 'transformerList' objects!")
-          
+
           res <- lapply(trans, function(obj)obj[["transform"]])
-          transformList(names(trans), res)  
+          transformList(names(trans), res)
         })
       }else
         stop("expect the second argument as a 'transformerList' object or a list of 'transformerList' objects!")
-  	
+
 	#check if all trans are supported by Rcpp
   unrecognized <- FALSE
 	for(sn in names(translist))
 	{
-	  
+
 		for(trans in translist[[sn]])
 		{
-  		  
+
   		transobj <- parse_transformer(trans)
   		if(length(transobj)==0)
   		{
   			unrecognized <- TRUE
   			break
   		}
-  		
+
 		}
-	  
+
 	  if(unrecognized)
 	    break
 	}
@@ -1059,7 +1064,7 @@ setMethod("transform",
 		cs <- gs_pop_get_data(gs)
 
 		suppressMessages(transform(cs, tList, ...))
-		
+
 	}else
 	{ #transform data and store trans in c++
 		for(sn in names(translist))
@@ -1139,14 +1144,14 @@ transformerList <- function (from, trans)
 setMethod("compensate", signature=signature(x="GatingSet", spillover="ANY"),
     definition=function(x, spillover){
       selectMethod("compensate", signature=c(x="cytoset", spillover="ANY"))(x, spillover)
-      
+
     })
 #' @rdname gh_get_compensations
 #' @export
 gs_get_compensations <- function(x){
 			lapply(x, gh_get_compensations)
 		}
-            
+
 #' @export
 setMethod("markernames",
           signature=signature(object="GatingSet"),
@@ -1195,29 +1200,29 @@ gs_get_phylo <- function(gs, ancestor = "root", tip.label = "auto"){
   tip.label <- match.arg(tip.label, c("auto", "full", "index"))
   fullPath <- ifelse(tip.label == "full", TRUE, FALSE)
   phylo_components <- flowWorkspace:::.cpp_getPhylo(gs@pointer, sampleNames(gs)[[1]], ancestor, fullPath)
-  
+
   # Remap node indices to satsify ape::phylo indexing requirements
   gs_leaf_idx <- phylo_components$leaf_nodes
   gs_internal_idx <- phylo_components$internal_nodes
   gs_idx <- c(gs_leaf_idx, gs_internal_idx)
-  idx_map <- data.frame("phylo_idx"=seq_along(gs_idx), 
+  idx_map <- data.frame("phylo_idx"=seq_along(gs_idx),
                         "gs_idx"=gs_idx,
                         "node_names"=c(phylo_components$leaf_names, phylo_components$internal_names),
                         "is_leaf"=c(rep(TRUE, length(gs_leaf_idx)), rep(FALSE, length(gs_internal_idx))))
-  
+
   phylo_edges <- sapply(as.vector(phylo_components$edges), function(gs_val) {idx_map[idx_map$gs == gs_val, "phylo_idx"]})
   phylo_components$phylo_edges <- matrix(phylo_edges, ncol = 2, byrow = FALSE)
-  
+
   if(tip.label %in% c("auto", "full"))
     tip.label <- phylo_components$leaf_names
   else
     tip.label <- seq_along(gs_leaf_idx)
-  
-  out_phylo <- list(edge=phylo_components$phylo_edges, 
-                    Nnode = length(gs_internal_idx), 
+
+  out_phylo <- list(edge=phylo_components$phylo_edges,
+                    Nnode = length(gs_internal_idx),
                     tip.label = tip.label)
   class(out_phylo) <- "phylo"
-  
+
   # Also store the node map internally for later availability
   attr(out_phylo, "node_idx_map") <- idx_map
   out_phylo
