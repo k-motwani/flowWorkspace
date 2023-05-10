@@ -1,25 +1,21 @@
 #' @importClassesFrom SingleCellExperiment SingleCellExperiment
 #' @export
-setClass("gsexperiment", contains = c("SingleCellExperiment"))
-         
+setClass("gsExperiment", contains = c("tidySingleCellExperiment"))
+
 #' @importFrom S4Vectors DataFrame SimpleList
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
-gsexperiment <- function(gs, pop = "root"){
-  leaf <- gs_get_leaf_nodes(gs, pop, path = "auto", showHidden = FALSE)
+gsExperiment <- function(gs, pop = "root", assay.type = "intensity"){
+  leaf <- gs_get_leaf_nodes(gs, pop, path = "auto", assayType = assay.type, showHidden = FALSE)
   sns <- sampleNames(gs)
   selist <-  lapply(sns, function(sn){
     gh <- gs[[sn]]
     cf <- gh_pop_get_data(gh, pop)
     ca <- CytoArray(cf)
-    
+
     #rowData
     pd <- pData(parameters(cf))
-    
-    ## somehow can't coerse df to DF
-    # pd$name <- as.character(pd$name)
-    # pd$desc <- as.character(pd$desc)
-    # as(pd, "DataFrame")
+
     rd <- DataFrame(#name = pd$name
                      desc = pd$desc
                     # , range = pd$range
@@ -28,7 +24,7 @@ gsexperiment <- function(gs, pop = "root"){
                     , row.names = pd$name #rownames(pd)
                     )
     #colData
-    
+
     #label each cell with leaf nodes
     ncell <- nrow(cf)
     idx.ancestor <- gh_pop_get_indices(gh, pop)
@@ -49,21 +45,20 @@ gsexperiment <- function(gs, pop = "root"){
     #convert to factor to save space
     pop.col <- factor(pop.col, levels = leaf)
     cd <- DataFrame(pop = pop.col, sample = factor(rep(sn, ncell), levels = sns))
-    SingleCellExperiment(assays = SimpleList(intensity = ca), rowData = rd, colData = cd)
+
+    ca.SimpleList <- SimpleList(assay = ca)
+    names(ca.SimpleList) <- assay.type
+
+    gse <- SingleCellExperiment(assays = ca.SimpleList, rowData = rd, colData = cd)
+    as(gse, "tidySingleCellExperiment")
   })
   #cbind samples
   se <- do.call(cbind, selist)
-  as(se, "gsexperiment")
-  
+  as(se, "gsExperiment")
 }
 
-setMethod("GatingSet",c("SingleCellExperiment"),function(x, ...){
-  
-  sce_to_gs(x, ...)  
-})
-
 #' convert SingleCellExperiment to a GatingSet
-#' 
+#'
 #' note that only selected assay and rowData columns will be extracted into the GatingSet
 #' @param sce SingleCellExperiment object
 #' @param assay_type select assay to use
@@ -76,7 +71,7 @@ sce_to_gs <- function(sce
                       , sample = "sample" # the column from colData to represent sample ID
                       , channel = NA # the column from rowData to represent channels
                       , marker = NA # the column from rowData to represent markers
-                      , ...) 
+                      , ...)
 {
   if(!assay_type %in% assayNames(sce))
     stop("assay_type: ", assay_type, " doesn't exist in sce object!")
@@ -86,35 +81,42 @@ sce_to_gs <- function(sce
     chnls <- rownames(rd)
   else
     chnls <- rd[[channel]]
-  
+
   mkrs <- rd[[marker]]
   names(mkrs) <- chnls
-  
+
   #split sce by sample col
   sn_vec <- colData(sce)[[sample]]
   cflist <- sapply(as.character(unique(sn_vec)), function(sn){
                       sce1 <- sce[, sn_vec == sn]
                       #convert assay into cytoframes
-                      mat <- assays(sce1)[[assay_type]]  
+                      mat <- assays(sce1)[[assay_type]]
                       mat <- t(mat)
                       mat <- as.matrix(mat)
                       fr <- flowFrame(mat)
                       markernames(fr) <- mkrs
                       cf <- flowFrame_to_cytoframe(fr)
-                      
+
                       #hack to store cell id in R slot
                       # cf@description[["cellid"]] <- rownames(mat)
                       #TODO:store cell id at cytolib
                       cf
                     })
-  
+
   cs <- cytoset(cflist)
   GatingSet(cs)
-  
-} 
+
+}
+
+setMethod("GatingSet",c("SingleCellExperiment"),function(x, ...){
+  sce_to_gs(x, ...)
+})
+
+# setMethod("SingleCellExperiment",c("GatingSet"),function(x, ...){
+#   gs_to_sce(x, ...)
+# })
 
 gs_get_cell_pop_labels <- function(gs){
-  
 }
 
 #' @importFrom dplyr select
@@ -122,7 +124,7 @@ gs_get_cell_pop_labels <- function(gs){
 #' @importFrom tibble column_to_rownames
 #' @importFrom TreeSummarizedExperiment TreeSummarizedExperiment
 #' @export
-gstreeexperiment <- function(gs, ancestor = "root", path = "auto"){
+gsTreeExperiment <- function(gs, ancestor = "root", path = "auto"){
   path <- match.arg(path, c("auto", "full"))
   this_phylo <- gs_get_phylo(gs, ancestor, tip.label = path)
   leaves <- gs_get_leaf_nodes(gs, ancestor, path = path)
