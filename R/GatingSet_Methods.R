@@ -1213,6 +1213,7 @@ gs_get_phylo <- function(gs, ancestor = "root", tip.label = "auto"){
   phylo_edges <- sapply(as.vector(phylo_components$edges), function(gs_val) {idx_map[idx_map$gs == gs_val, "phylo_idx"]})
   phylo_components$phylo_edges <- matrix(phylo_edges, ncol = 2, byrow = FALSE)
 
+
   if(tip.label %in% c("auto", "full"))
     tip.label <- phylo_components$leaf_names
   else
