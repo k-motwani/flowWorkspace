@@ -528,6 +528,15 @@ setReplaceMethod("flowData",signature(x="GatingSet"),function(x,value){
 #' @rdname gs_cyto_data
 #' @export
 setReplaceMethod("gs_cyto_data",signature(x="GatingSet"),function(x,value){
+      if(class(value) != "cytoset") {
+        if(inherits(value, "flowSet")) {
+          value <- flowSet_to_cytoset(value)
+        } else {
+          stop(
+            "Data to replace in GatingSet must be either a flowSet or cytoset!"
+          )
+        }
+      }
 			set_cytoset(x@pointer, value@pointer)
 			x
 		})
@@ -801,8 +810,8 @@ gs_pop_get_count_fast <- function(x, statistic = c("count", "freq"), xml = FALSE
 		 return(.gslist_get_pop_stats(x, format, statistic, xml, subpopulations, path, ...))
       # Based on the choice of statistic, the population statistics are returned for
       # each Gating Hierarchy within the GatingSet.
-      statistic <- match.arg(statistic)
-      format <- match.arg(format)
+      statistic <- match.arg(tolower(statistic), c("count", "freq"))
+      format <- match.arg(format, c("long", "wide"))
       path <- match.arg(path, c("full", "auto"))
 
       if(format == "long"){
